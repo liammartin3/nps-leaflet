@@ -80,9 +80,36 @@ L.tileLayer.provider('MapBox', {
     accessToken: 'pk.eyJ1IjoibGlhbW1hcnRpbiIsImEiOiJjbG4zcjdiZDUwY3FtMmpvZ2lzeDF3c3d0In0.eFVJQFhn-mb1TUbEG6ZNTg'
 }).addTo(map);
 
+// List of special parks to highlight in a different color
+var highlightedParks = [
+    "Yellowstone National Park",
+    "Grand Canyon National Park",
+    "Rocky Mountain National Park",
+    "Great Sand Dunes National Park",
+    "Black Canyon of the Gunnison National Park",
+    "Bryce Canyon National Park",
+    "Zion National Park",
+    "Arches National Park",
+    "Grand Teton National Park"
+];
+
 var myStyle = {
     "color": "#2e8b57"
 };
+
+var highlightStyle = {
+    "color": "#8b2e62",  // Purple color for highlighted parks
+    "weight": 3
+};
+
+// Style function to apply different colors based on park name
+function styleFeature(feature) {
+    if (feature.properties && feature.properties.UNIT_NAME && 
+        highlightedParks.includes(feature.properties.UNIT_NAME)) {
+        return highlightStyle;
+    }
+    return myStyle;
+}
 
 var queryParameters = {
     where: "UNIT_TYPE = 'National Park'" // Filter by attribute value
@@ -92,7 +119,7 @@ L.esri
         .featureLayer({
           url: "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/NPS_Land_Resources_Division_Boundary_and_Tract_Data_Service/FeatureServer/2",
           where: queryParameters.where,
-          style: myStyle,
+          style: styleFeature,  // Use the style function instead of static style
           onEachFeature: onEachFeature,
           // Performance optimizations
           simplifyFactor: 0.5,  // Simplifies complex geometries
@@ -116,6 +143,7 @@ legend.onAdd = function (map) {
     var div = L.DomUtil.create('div', 'legend');
     div.innerHTML = '<h4>National Parks</h4>' +
         '<i style="background: #2e8b57"></i> Park Boundary<br>' +
+        '<i style="background: #8b2e62"></i> Parks I Have Visited<br>' +
         '<div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #ddd;">' +
         '<a href="https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/NPS_Land_Resources_Division_Boundary_and_Tract_Data_Service/FeatureServer/2" target="_blank">Data Source: NPS</a>' +
         '</div>';
