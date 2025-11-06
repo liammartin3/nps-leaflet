@@ -6,7 +6,51 @@
 integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ=="
 crossorigin=""/>
 <style>
-.leaflet-popup-content-wrapper, .leaflet-popup-tip {color:#000000 ;background-color: #ffffff;}
+        html, body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            display: flex;
+        }
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+
+.leaflet-popup-content-wrapper, .leaflet-popup-tip {color:#fcfafa ;background-color: #040404;}
+
+/* Legend styles */
+.legend {
+    background: white;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    line-height: 24px;
+    color: #555;
+}
+.legend h4 {
+    margin: 0 0 10px;
+    color: #333;
+    font-size: 14px;
+}
+.legend i {
+    width: 18px;
+    height: 18px;
+    float: left;
+    margin-right: 8px;
+    opacity: 0.7;
+}
+.legend a {
+    color: #0066cc;
+    text-decoration: none;
+    font-size: 12px;
+}
+.legend a:hover {
+    text-decoration: underline;
+}
 </style>
 
 <!-- reference to Leaflet JavaScript -->
@@ -16,11 +60,12 @@ crossorigin=""></script>
 
 <!-- L.esri plugin JavaScript -->
 <script src="https://unpkg.com/esri-leaflet@3.0.10/dist/esri-leaflet.js"></script>
+<script src="js/leaflet-providers.js"></script>
 
 </head>
 
 <body>
-  <div id="map" style = "width: 1200px; height: 580px"></div> 
+  <div id="map"></div> 
   <script src="geojson/nps.geojson"></script>
   <script>
 
@@ -29,10 +74,11 @@ const apiKey = "AAPKeafa6288204d4f088bcda05c7fe81547f9pg25vAoP6EX9D7syKC-LzSbA7c
 var map = L.map('map').setView([39.099724, -96.578331], 4);
 
 //Tile Layer
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: 'abcd',
-        maxZoom: 19
-        }).addTo(map);
+
+L.tileLayer.provider('MapBox', {
+    id: "mapbox/light-v10",
+    accessToken: 'pk.eyJ1IjoibGlhbW1hcnRpbiIsImEiOiJjbG4zcjdiZDUwY3FtMmpvZ2lzeDF3c3d0In0.eFVJQFhn-mb1TUbEG6ZNTg'
+}).addTo(map);
 
 var myStyle = {
     "color": "#2e8b57"
@@ -47,7 +93,12 @@ L.esri
           url: "https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/NPS_Land_Resources_Division_Boundary_and_Tract_Data_Service/FeatureServer/2",
           where: queryParameters.where,
           style: myStyle,
-        onEachFeature: onEachFeature
+          onEachFeature: onEachFeature,
+          // Performance optimizations
+          simplifyFactor: 0.5,  // Simplifies complex geometries
+          precision: 5,          // Reduces coordinate precision
+          useCors: false,        // Improves loading speed
+          cacheLayers: true      // Caches features to avoid re-fetching
         })
         .addTo(map);
 
@@ -59,6 +110,21 @@ function onEachFeature(feature, layer) {
         layer.bindPopup(feature.properties.UNIT_NAME);
     }
 }
+
+// Add Legend
+var legend = L.control({position: 'bottomright'});
+
+legend.onAdd = function (map) {
+    var div = L.DomUtil.create('div', 'legend');
+    div.innerHTML = '<h4>National Parks</h4>' +
+        '<i style="background: #2e8b57"></i> Park Boundary<br>' +
+        '<div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #ddd;">' +
+        '<a href="https://services1.arcgis.com/fBc8EJBxQRMcHlei/arcgis/rest/services/NPS_Land_Resources_Division_Boundary_and_Tract_Data_Service/FeatureServer/2" target="_blank">Data Source: NPS</a>' +
+        '</div>';
+    return div;
+};
+
+legend.addTo(map);
 
 </script>
 </body>
